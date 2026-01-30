@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+
 const initialState = {
   user: null,
   loading: false,
@@ -33,6 +34,17 @@ export const loginUser = createAsyncThunk(
     }
   },
 );
+export const getMe = createAsyncThunk("auth/me", async (userData, thunkAPI) => {
+  try {
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/auth/me`,
+      { headers: { Authorization: `Bareer ${token}` } },
+    );
+    return res.data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data || error.message);
+  }
+});
 //Reducers used to handle synchronous funcitons in slice
 //extra reducers handle asynchronous
 export const authSlice = createSlice({
@@ -49,6 +61,7 @@ export const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (action, state) => {
         state.loading = false;
         state.user = action.payload;
+        state.error = null;
       })
       .addCase(registerUser.rejected, (action, state) => {
         state.loading = false;
@@ -59,13 +72,29 @@ export const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(loginUser.rejected, (action, state) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
       .addCase(loginUser.fulfilled, (action, state) => {
         state.loading = false;
         state.user = action.payload;
+        state.error = action.payload;
+      })
+      .addCase(loginUser.rejected, (action, state) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    builder
+      .addCase(getMe.pending, (action, state) => {
+        state.loading = true;
+        state.user = null;
+      })
+      .addCase(getMe.fulfilled, (action, state) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.error = null;
+      })
+
+      .addCase(getMe.rejected, (action, state) => {
+        state.loading = false;
         state.error = action.payload;
       });
   },

@@ -1,5 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
-import stageReducer from "./features/stages/stageSlice.js";
+import { authSlice } from "./features/auth/authSlice.js";
 export const store = configureStore({
-  reducer: stageReducer,
+  reducer: {
+    auth: authSlice,
+  },
 });
